@@ -82,25 +82,36 @@ app.get('/user/:id/:from/:before', function (req, res) {
     let id = req.params.id;
     let from = req.params.from;
     let before = req.params.before;
-    let user = getUserData(usersData, id);
+    let user = getUserData(usersData, id)[0];
 
 
     let userStatistic = getUserStatisticArr(usersStatistic, id);
     let filteredUserStatistic = userStatistic.splice(from, before)
 
-    let statistic = filteredUserStatistic.map(item => {
-        return {
-            data: `${item.date.slice(5, 7)}.${item.date.slice(8)}`,
-            page_views: item.page_views,
-            clicks: item.clicks,
-        }
-    })
-    
+
+    /// Sorry for duplication. Duplication is evil.
+    let statisticDate = filteredUserStatistic.map(item => {
+        return `${item.date.slice(5, 7)}.${item.date.slice(8)}`;
+    });
+    let statisticClicks = filteredUserStatistic.map(item => {
+        return item.clicks;
+    });
+    let statisticViews = filteredUserStatistic.map(item => {
+        return item.page_views;
+    });
+    ///
 
     if (user == undefined) {
         res.status(11).send({ error: 'User undefined' });
     } else {
-        res.send({statistic, user});
+
+        let response = {
+            statisticDate, 
+            statisticClicks, 
+            statisticViews, name: `${user.first_name} ${user.last_name}`
+        };
+        res.send(response);
+        
     }
 
 
