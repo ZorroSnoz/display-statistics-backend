@@ -17,18 +17,22 @@ app.listen(process.env.PORT || port, function () {
 });
 
 
-let getUserStatisticArr = (usersStatistic, userId) => {  
+let getUserStatisticArr = (usersStatistic, userId) => {
     let userStatisticArr = [];
-    userStatisticArr = usersStatistic.filter(item => item.user_id == userId);   
+    userStatisticArr = usersStatistic.filter(item => item.user_id == userId);
     return userStatisticArr;
 };
+
+let getUserData = (usersData, id) => {
+    return usersData.filter(item => item.id == id);
+}
 
 let getUserStatistic = (userStatisticArr) => {
     let userStatistic = {
         totalPageViews: 0,
         totalClicks: 0
     }
-    for (let i = 0 ; i < userStatisticArr.length; i++) {    
+    for (let i = 0; i < userStatisticArr.length; i++) {
         userStatistic.totalPageViews = userStatistic.totalPageViews + userStatisticArr[i].page_views;
         userStatistic.totalClicks = userStatistic.totalClicks + userStatisticArr[i].clicks;
     };
@@ -37,9 +41,9 @@ let getUserStatistic = (userStatisticArr) => {
 
 let usersDataUpdate = (newUsersData) => {
     let updateUsersData = [];
-    for (let i = 0; i < newUsersData.length; i++) {    
-      let  userStatistic = getUserStatistic(getUserStatisticArr(usersStatistic, newUsersData[i].id));   
-      updateUsersData.push({...newUsersData[i], total_page_views: userStatistic.totalPageViews, total_clicks: userStatistic.totalClicks})
+    for (let i = 0; i < newUsersData.length; i++) {
+        let userStatistic = getUserStatistic(getUserStatisticArr(usersStatistic, newUsersData[i].id));
+        updateUsersData.push({ ...newUsersData[i], total_page_views: userStatistic.totalPageViews, total_clicks: userStatistic.totalClicks })
     };
     return updateUsersData;
 };
@@ -64,9 +68,40 @@ let getUsersData = (usersData, usersNumber, currentPage) => {
 app.get('/users-data/:usersNumber/:currentPage', function (req, res) {
     let usersNumber = req.params.usersNumber;
     let currentPage = req.params.currentPage;
-    if (usersNumber > 50 ) {
+    if (usersNumber > 50) {
         res.status(10).send({ error: 'Maximum users in 1 page = 50!' });
     }
-    res.send(getUsersData(usersData, usersNumber, currentPage));
+
+
+
+    res.send({ usersData: getUsersData(usersData, usersNumber, currentPage), allUsersNumber: usersData.length });
 });
 
+app.get('/user/:id/:from/:before', function (req, res) {
+
+    let id = req.params.id;
+    let from = req.params.from;
+    let before = req.params.before;
+    let user = getUserData(usersData, id);
+
+
+    let userStatistic = getUserStatisticArr(usersStatistic, id);
+    let filteredUserStatistic = userStatistic.splice(from, before)
+
+    let statistic = filteredUserStatistic.map(item => {
+        return {
+            data: `${item.date.slice(5, 7)}.${item.date.slice(8)}`,
+            page_views: item.page_views,
+            clicks: item.clicks,
+        }
+    })
+    
+
+    if (user == undefined) {
+        res.status(11).send({ error: 'User undefined' });
+    } else {
+        res.send({statistic, user});
+    }
+
+
+});
