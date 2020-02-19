@@ -80,14 +80,17 @@ app.get('/users-data/:usersNumber/:currentPage', function (req, res) {
 app.get('/user/:id/:from/:before', function (req, res) {
 
     let id = req.params.id;
-    let from = req.params.from;
-    let before = req.params.before;
+    let from = +req.params.from;
+    let before = +req.params.before;
     let user = getUserData(usersData, id)[0];
 
 
     let userStatistic = getUserStatisticArr(usersStatistic, id);
-    let filteredUserStatistic = userStatistic.splice(from, before)
+    let dateDiapazon = userStatistic.map(item => {
+        return `${item.date.slice(5, 7)}.${item.date.slice(8)}`;
+    });
 
+      let  filteredUserStatistic = userStatistic.slice(from, before+1)
 
     /// Sorry for duplication. Duplication is evil.
     let statisticDate = filteredUserStatistic.map(item => {
@@ -106,12 +109,13 @@ app.get('/user/:id/:from/:before', function (req, res) {
     } else {
 
         let response = {
-            statisticDate, 
-            statisticClicks, 
-            statisticViews, name: `${user.first_name} ${user.last_name}`
+            statisticDate,
+            statisticClicks,
+            statisticViews, name: `${user.first_name} ${user.last_name}`,
+            dateDiapazon
         };
         res.send(response);
-        
+
     }
 
 
